@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-         python-version: ["3.10", "3.11", "3.12"]
+         python-version: ["3.11"] #["3.10", "3.11", "3.12"]
 
 
     steps:
@@ -49,7 +49,7 @@ jobs:
       
       - name: Publish Release
         if: ${{ github.event_name == 'pull_request' }}
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.LAYER_NAME }}_layer_${{ matrix.python-version }}.zip
+          files: ${{ env.LAYER_NAME }}_${{ matrix.python-version }}_layer.zip
           tag_name: v1.0-${{ env.LAYER_NAME }}_${{ matrix.python-version }}
