@@ -24,20 +24,20 @@ jobs:
 
       - name: Run layer name script
         run: |
-          LAYER_NAME=$(python -c "
+          LAYER_NAME=$(python3 -c '
           def get_layer_name():
-              with open('requirements.txt', 'r') as file:
+              with open("requirements.txt", "r") as file:
                   lines = file.readlines()
-              libraries = [line.split('==')[0] for line in lines if '==' in line]
+              libraries = [line.split("==")[0] for line in lines if "==" in line]
               if len(libraries) >= 2:
-                  return f'{libraries[0]}_{libraries[1]}'
+                  return f"{libraries[0]}_{libraries[1]}"
               elif libraries:
                   return libraries[0]
               else:
-                  return 'default_layer'
+                  return "default_layer"
           
           print(get_layer_name())
-          ")
+          ')
           echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
