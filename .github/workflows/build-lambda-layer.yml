@@ -21,13 +21,35 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -t python
+          
+      - name: Run layer name script
+        run: |
+          LAYER_NAME=$(python3 -c '
+          def get_layer_name():
+              with open("requirements.txt", "r") as file:
+                  lines = file.readlines()
+              libraries = [line.split("==")[0] for line in lines if "==" in line]
+              if len(libraries) >= 2:
+                  return f"{libraries[0]}_{libraries[1]}"
+              elif libraries:
+                  return libraries[0]
+              else:
+                  return "default_layer"
+          
+          print(get_layer_name())
+          ')
+          echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
-        run: zip -r9 layer_${{ matrix.python-version }}.zip python
+        run: zip -r9 $LAYER_NAME_layer_${{ matrix.python-version }}.zip python
       
       - name: Publish Release
         if: ${{ github.event_name == 'pull_request' }}
         uses: softprops/action-gh-release@v1
         with:
-          files: layer_${{ matrix.python-version }}.zip
-          tag_name: v1.0-layer_${{ matrix.python-version }}
+          files: $LAYER_NAME_layer_${{ matrix.python-version }}.zip
+          tag_name: v1.0-$LAYER_NAME_${{ matrix.python-version }}
