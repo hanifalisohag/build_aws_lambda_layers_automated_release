@@ -1,0 +1,49 @@
+name: Build and Test
+
+on:
+  pull_request:
+    paths:
+      - 'requirements.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.10, 3.11, 3.12]  # Direct python versions
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set Up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run layer name script
+        run: |
+          def get_layer_name():
+              with open('requirements.txt', 'r') as file:
+                  lines = file.readlines()
+              libraries = [line.split('==')[0] for line in lines if '==' in line]
+              if len(libraries) >= 2:
+                  layer_name = f'{libraries[0]}_{libraries[1]}'
+              elif libraries:
+                  layer_name = libraries[0]
+              else:
+                  layer_name = 'default_layer'
+              print(layer_name)
+
+          layer_name = get_layer_name()
+          echo "LAYER_NAME=$(python -c 'print(get_layer_name())')" >> $GITHUB_ENV
+
+      - name: Package layer
+        run: zip -r ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip python/
+      
+      - name: Publish Release
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip
+          tag_name: v1.0-${LAYER_NAME}_${{ matrix.python-version }}
