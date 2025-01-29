@@ -45,7 +45,7 @@ jobs:
           echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
-        run: zip -r9 ${{ env.LAYER_NAME }}_layer_${{ matrix.python-version }}.zip python
+        run: zip -r9 ${{ env.LAYER_NAME }}_${{ matrix.python-version }}_layer.zip python
       
       - name: Publish Release
         if: ${{ github.event_name == 'pull_request' }}
