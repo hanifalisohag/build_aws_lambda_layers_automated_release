@@ -12,11 +12,12 @@ jobs:
       matrix:
          python-version: ["pypy3.10", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Python ${{ matrix.python-version }}
+
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -40,7 +41,7 @@ jobs:
           echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
-        run: zip -r ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip python/
+        run: zip -r9 ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip python
       
       - name: Publish Release
         if: ${{ github.event_name == 'pull_request' }}
