@@ -1,1 +1,1 @@
-requests==2.32.2
+awsiotsdk==1.22.1
