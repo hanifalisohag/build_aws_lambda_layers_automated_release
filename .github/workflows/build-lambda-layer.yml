@@ -41,11 +41,11 @@ jobs:
           echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
-        run: zip -r9 ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip . -i python
+        run: zip -r9 $LAYER_NAME_layer_${{ matrix.python-version }}.zip . -i python
       
       - name: Publish Release
         if: ${{ github.event_name == 'pull_request' }}
         uses: softprops/action-gh-release@v1
         with:
-          files: ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip
-          tag_name: v1.0-${LAYER_NAME}_${{ matrix.python-version }}
+          files: $LAYER_NAME_layer_${{ matrix.python-version }}.zip
+          tag_name: v1.0-$LAYER_NAME_${{ matrix.python-version }}
