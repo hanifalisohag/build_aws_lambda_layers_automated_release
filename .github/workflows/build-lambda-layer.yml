@@ -23,20 +23,21 @@ jobs:
 
       - name: Run layer name script
         run: |
+          LAYER_NAME=$(python -c "
           def get_layer_name():
               with open('requirements.txt', 'r') as file:
                   lines = file.readlines()
               libraries = [line.split('==')[0] for line in lines if '==' in line]
               if len(libraries) >= 2:
-                  layer_name = f'{libraries[0]}_{libraries[1]}'
+                  return f'{libraries[0]}_{libraries[1]}'
               elif libraries:
-                  layer_name = libraries[0]
+                  return libraries[0]
               else:
-                  layer_name = 'default_layer'
-              print(layer_name)
-
-          layer_name = get_layer_name()
-          echo "LAYER_NAME=$(python -c 'print(get_layer_name())')" >> $GITHUB_ENV
+                  return 'default_layer'
+          
+          print(get_layer_name())
+          ")
+          echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
         run: zip -r ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip python/
