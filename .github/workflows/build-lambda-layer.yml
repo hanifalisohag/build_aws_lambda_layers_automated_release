@@ -10,40 +10,46 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["pypy3.10", "3.9", "3.10", "3.11", "3.12", "3.13"]
+         python-version: ["3.11"] #["3.10", "3.11", "3.12"]
+
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
 
-      - name: Set Up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -t python || exit 1
+          
       - name: Run layer name script
         run: |
+          LAYER_NAME=$(python3 -c '
           def get_layer_name():
-              with open('requirements.txt', 'r') as file:
+              with open("requirements.txt", "r") as file:
                   lines = file.readlines()
-              libraries = [line.split('==')[0] for line in lines if '==' in line]
+              libraries = [line.split("==")[0] for line in lines if "==" in line]
               if len(libraries) >= 2:
-                  layer_name = f'{libraries[0]}_{libraries[1]}'
+                  return f"{libraries[0]}_{libraries[1]}"
               elif libraries:
-                  layer_name = libraries[0]
+                  return libraries[0]
               else:
-                  layer_name = 'default_layer'
-              print(layer_name)
-
-          layer_name = get_layer_name()
-          echo "LAYER_NAME=$(python -c 'print(get_layer_name())')" >> $GITHUB_ENV
+                  return "default_layer"
+          
+          print(get_layer_name())
+          ')
+          echo "LAYER_NAME=${LAYER_NAME}" >> $GITHUB_ENV
 
       - name: Package layer
-        run: zip -r9 ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip python
+        run: zip -r9 ${{ env.LAYER_NAME }}_${{ matrix.python-version }}_layer.zip python
       
       - name: Publish Release
         if: ${{ github.event_name == 'pull_request' }}
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: ${LAYER_NAME}_layer_${{ matrix.python-version }}.zip
-          tag_name: v1.0-${LAYER_NAME}_${{ matrix.python-version }}
+          files: ${{ env.LAYER_NAME }}_${{ matrix.python-version }}_layer.zip
+          tag_name: v1.0-${{ env.LAYER_NAME }}_${{ matrix.python-version }}
